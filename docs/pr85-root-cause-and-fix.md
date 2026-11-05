@@ -33,7 +33,9 @@
 
 原则：用平台自己的所有权和事务语义，每一步正向操作都有一个可校验的逆操作；不靠忽略错误，不备份整个注册表，不伪造所有权。
 
-1. **原生驱动事务**（`DriverTransaction.cpp/.h`，取代 DIFx 路径）
+背景：已发布的官方 MSI（测试用的 0.1.248/271/285）通过 WiX 的 DIFxApp 扩展装驱动，所有权记录在 `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DIFxApp\Components`。本仓库 master 自 `11a7427`（2024-06）起已改用自己的 DrvInstCA（`DevProps.cpp`：`UpdateDriverForPlugAndPlayDevices(INSTALLFLAG_FORCE)`、`SetupUninstallOEMInf`/`DiUninstallDriverW`），但没有事务和逆操作。本修复替换的是 master 的 DevProps 安装/卸载路径；对 DIFx 时代的旧产品只做只读准入检查，不改写它的记录。（提交 `3f0cca9` 的说明里写的 "Replace the DIFx path" 不准确，以此为准。）
+
+1. **原生驱动事务**（`DriverTransaction.cpp/.h`，取代 master 的 DevProps 路径）
    - 正向：`SetupCopyOEMInf`（NOOVERWRITE，记录是否本次新建）→ 一次 `DiInstallDriverW(flags=0)`，由 Windows 选择设备，不强制。
    - 写前日志：每个操作之前把意图和捕获的旧状态写进 WiX 回滚脚本（每组独立 GUID）。
    - 逆操作：按逆序比较当前绑定与捕获绑定，只还原变了的；用精确的旧包/节或 NULL 驱动；只删除本次新建的包，且在绑定还原之后，不强制。
