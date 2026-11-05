@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test-only product. Build ONLY with approved source-verified extension; core inputs must match this archive. -->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:dins="http://www.redhat.com/DrvInstExt">
+  <?if $(sys.BUILDARCH) = "x64" ?>
+  <?define FixtureProgramFiles = "ProgramFiles64Folder" ?>
+  <?define FixtureWin64 = "yes" ?>
+  <?define FixtureComponentGuid = "{6717B43A-8D0D-4BF3-B139-67CE0B0C4D82}" ?>
+  <?else ?>
+  <?define FixtureProgramFiles = "ProgramFilesFolder" ?>
+  <?define FixtureWin64 = "no" ?>
+  <?define FixtureComponentGuid = "{8D8F7030-7FE0-40C4-87D0-534CE62957BA}" ?>
+  <?endif ?>
+  <Product Id="*" Name="PR85 native driver transaction fixture" Language="1033"
+           Version="1.0.0" Manufacturer="PR85 tests" UpgradeCode="{08A730E2-4D80-43F3-A67C-0540962A1AC0}">
+    <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine" />
+    <MediaTemplate EmbedCab="yes" />
+    <?if $(sys.BUILDARCH) = "x64" ?>
+    <Condition Message="This native fixture requires native x64 Windows 8.1+ and enabled rollback.">VersionNT &gt;= 603 AND VersionNT = VersionNT64 AND NOT RollbackDisabled</Condition>
+    <?else ?>
+    <Condition Message="This native fixture requires native x86 Windows 8.1+ and enabled rollback.">VersionNT &gt;= 603 AND VersionNT &lt;&gt; VersionNT64 AND NOT RollbackDisabled</Condition>
+    <?endif ?>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="$(var.FixtureProgramFiles)">
+        <Directory Id="PR85FixtureDirectory" Name="PR85DriverTransactionFixture">
+          <Component Id="PR85FixtureDriver" Guid="$(var.FixtureComponentGuid)" Win64="$(var.FixtureWin64)">
+            <File Id="PR85FixtureInf" Source="$(var.DriverFixtureSource)\$(var.DriverFixtureName).inf" KeyPath="yes" />
+            <File Id="PR85FixtureCat" Name="$(var.DriverFixtureName).cat" Source="$(var.DriverFixtureCatalog)" />
+            <File Id="PR85FixtureSys" Source="$(var.DriverFixtureSource)\$(var.DriverFixtureName).sys" />
+            <?ifdef var.DriverFixtureSupportFile ?>
+            <File Id="PR85FixtureSupport" Source="$(var.DriverFixtureSource)\$(var.DriverFixtureSupportFile)" />
+            <?endif ?>
+            <dins:DriverInstall FileName="$(var.DriverFixtureName).inf" Directory="PR85FixtureDirectory" Flags="0" Sequence="1" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+    <Feature Id="PR85DriverFeature" Level="1"><ComponentRef Id="PR85FixtureDriver" /></Feature>
+    <?if $(var.DriverFixtureFault) = "afterNative" ?>
+    <CustomAction Id="PR85_NativeFixtureFailure" Error="PR85 test-only failure after native driver work." />
+    <InstallExecuteSequence>
+      <!-- Independent probe product: execute maintenance/uninstall script too, unlike shipping NOT Installed. -->
+      <InstallExecute Sequence="6500">1</InstallExecute>
+      <Custom Action="PR85_NativeFixtureFailure" After="InstallExecute">PR85_FAIL_AFTER_NATIVE = 1</Custom>
+    </InstallExecuteSequence>
+    <?endif ?>
+  </Product>
+</Wix>

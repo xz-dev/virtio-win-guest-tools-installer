@@ -22,7 +22,10 @@
             <PropertyRef Id="Set_Old_WGT_props" />
             <MajorUpgrade 
                   DowngradeErrorMessage="A newer version of [ProductName] is already installed."
-                  Schedule="afterInstallInitialize" />
+                  Schedule="afterInstallExecute" />
+            <Condition Message="Rollback must be enabled to install or remove [ProductName].">
+                  NOT RollbackDisabled
+            </Condition>
             <UIRef Id="WixUI_FeatureTree" />
             <WixVariable Id="WixUIBannerBmp" Value="graphics/horizontal_banner.bmp" />
             <WixVariable Id="WixUIDialogBmp" Value="graphics/background.bmp" />

@@ -73,7 +73,7 @@
     <EmbeddedResource Include="TableDefinitions.xml" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="C:\work\devel\DrvInst\Install\Release\$(Platform)\DrvInstLib.wixlib">
+    <EmbeddedResource Include="..\Install\$(Configuration)\$(Platform)\DrvInstLib.wixlib">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>

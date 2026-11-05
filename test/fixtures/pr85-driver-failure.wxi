@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Include xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <CustomAction Id="PR85_TestFailure" Error="PR85 test-only transaction failure." />
+    <InstallExecuteSequence>
+        <?if $(var.PR85FailureBoundary) = "beforeOldRemoval" ?>
+        <!-- Fixture-only spacing leaves room before generated old removal. -->
+        <InstallExecute Sequence="6490">NOT Installed</InstallExecute>
+        <Custom Action="PR85_TestFailure" Before="RemoveExistingProducts">
+            NOT Installed AND WIX_UPGRADE_DETECTED
+        </Custom>
+        <?elseif $(var.PR85FailureBoundary) = "afterOldRemoval" ?>
+        <Custom Action="PR85_TestFailure" After="RemoveExistingProducts">
+            NOT Installed AND WIX_UPGRADE_DETECTED
+        </Custom>
+        <?else ?>
+        <?error PR85FailureBoundary must be beforeOldRemoval or afterOldRemoval ?>
+        <?endif ?>
+    </InstallExecuteSequence>
+</Include>
